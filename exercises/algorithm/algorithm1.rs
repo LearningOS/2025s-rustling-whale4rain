@@ -2,7 +2,7 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -70,14 +70,64 @@ impl<T> LinkedList<T> {
         }
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+    where
+        T: Ord,
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+		if list_a.start.is_none() {
+            return list_b;
         }
-	}
+        if list_b.start.is_none() {
+            return list_a;
+        }
+
+        let mut new_list = LinkedList::new();
+        let mut ptr_a = list_a.start;
+        let mut ptr_b = list_b.start;
+
+        let (start, next_a, next_b) = unsafe {
+            let node_a = ptr_a.unwrap().as_ref();
+            let node_b = ptr_b.unwrap().as_ref();
+            if node_a.val < node_b.val {
+                (ptr_a, node_a.next, ptr_b)
+            } else {
+                (ptr_b, node_b.next, ptr_a)
+            }
+        };
+        new_list.start = start;
+        ptr_a = next_a;
+        ptr_b = next_b;
+        let mut current = new_list.start.unwrap();
+
+        while let (Some(node_a), Some(node_b)) = (ptr_a, ptr_b) {
+            unsafe {
+                if node_a.as_ref().val < node_b.as_ref().val {
+                    (*current.as_ptr()).next = Some(node_a);
+                    ptr_a = node_a.as_ref().next;
+                } else {
+                    (*current.as_ptr()).next = Some(node_b);
+                    ptr_b = node_b.as_ref().next;
+                }
+                current = (*current.as_ptr()).next.unwrap();
+            }
+        }	
+
+        if ptr_a.is_some() {
+            unsafe {
+                (*current.as_ptr()).next = ptr_a;
+            }
+            new_list.end = list_a.end;
+        } else if ptr_b.is_some() {
+            unsafe {
+                (*current.as_ptr()).next = ptr_b;
+            }
+            new_list.end = list_b.end;
+        } else {
+            new_list.end = Some(current);
+        }
+
+        new_list.length = list_a.length + list_b.length;
+        new_list
+    }
 }
 
 impl<T> Display for LinkedList<T>
