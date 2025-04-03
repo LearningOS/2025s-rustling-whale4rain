@@ -12,8 +12,8 @@ struct Wrapper<T> {
     value: T,
 }
 
-impl Wrapper<T> {
-    pub fn new<T>(value: T) -> Self {
+impl<T> Wrapper<T> {
+    pub fn new(value: T) -> Self {
         Wrapper { value }
     }
 }
